@@ -61,4 +61,39 @@ title( 'Reflected pattern on the observation screen' );
 xlabel( 'Screen Y bins' );
 ylabel( 'Screen Z bins' );
 
+% Build a continuous heat map to highlight the reflective valleys where the
+% sinusoidal surface concentrates the rays. The Screen already accumulates a
+% discrete histogram of ray intersections; here we apply a Gaussian smoothing
+% filter to generate a continuous-looking density map and render it with
+% MATLAB's heatmap visualisation for clearer interpretation.
+heatmap_image = double( screen.image );
+if any( heatmap_image( : ) )
+    kernel_sigma = 2.0;
+    kernel_size = 15; % odd value so that the kernel is centered
+    kernel = gaussian_kernel( kernel_size, kernel_sigma );
+    heatmap_smoothed = conv2( heatmap_image, kernel, 'same' );
+else
+    heatmap_smoothed = heatmap_image;
 end
+
+y_centres = linspace( -screen.w/2, screen.w/2, screen.wbins );
+z_centres = linspace( -screen.h/2, screen.h/2, screen.hbins );
+
+figure( 'Name', 'FSGD reflective heat map', 'NumberTitle', 'Off' );
+hmap = heatmap( y_centres, z_centres, heatmap_smoothed );
+hmap.Colormap = parula( 256 );
+hmap.ColorbarVisible = 'on';
+hmap.GridVisible = 'off';
+hmap.CellLabelColor = 'none';
+hmap.Title = 'Continuous heat map of reflected ray density';
+hmap.XLabel = 'Screen Y (mm)';
+hmap.YLabel = 'Screen Z (mm)';
+
+end
+
+function kernel = gaussian_kernel( size_px, sigma )
+%GAUSSIAN_KERNEL Create a normalised 2-D Gaussian kernel.
+half_size = ( size_px - 1 ) / 2;
+[ x, y ] = meshgrid( -half_size : half_size, -half_size : half_size );
+kernel = exp( -( x.^2 + y.^2 ) / ( 2 * sigma^2 ) );
+kernel = kernel / sum( kernel( : ) );
