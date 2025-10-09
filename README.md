@@ -47,3 +47,5 @@ example14.m: tests refraction through a lens with astigmatism (different vertica
 example15.m: simulates a hexagonal array of spherical micro lenses
 
 example16.m: demonstrates STL export of various lenses
+
+example17.m: demonstrates a reflective free-surface gradient detector setup using a sinusoidal mirror profile

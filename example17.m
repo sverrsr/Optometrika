@@ -1,0 +1,64 @@
+function example17()
+%
+% Reflective free-surface gradient detector (FSGD) demonstration.
+%
+% This example builds a simple reflective setup that illuminates a
+% bi-axial sinusoidal free-form surface and records the reflected ray
+% distribution on a screen. The scene approximates the reflective mode of
+% the FSGD technique.
+%
+% The surface profile is provided by sinusoidal_surface.m.
+%
+% Copyright: 2024 Optometrika contributors
+
+% Create a container for optical elements
+bench = Bench;
+
+% Define a reflective sinusoidal surface. The surface is described by a
+% sum of sine waves along the Y and Z axes. Adjust the amplitudes or
+% periods to explore different gradients.
+amp_y = 3;      % amplitude along Y (millimetres)
+per_y = 40;     % period along Y
+amp_z = 1.5;    % amplitude along Z
+per_z = 25;     % period along Z
+aperture = 80;  % clear aperture diameter
+
+mirror = GeneralLens( [ 0 0 0 ], aperture, 'sinusoidal_surface', ...
+    { 'air' 'mirror' }, amp_y, per_y, amp_z, per_z );
+bench.append( mirror );
+
+% Place a screen that captures the reflected bundle. The screen is rotated
+% by pi radians so that its normal points towards the incoming reflected
+% light.
+screen_distance = -120;
+screen_size = 120;
+screen = Screen( [ screen_distance 0 0 ], screen_size, screen_size, 512, 512 );
+screen.rotate( [ 0 1 0 ], pi );
+bench.append( screen );
+
+% Generate a collimated bundle of rays aimed at the mirror. The bundle
+% diameter is matched to the clear aperture of the surface.
+nrays = 4000;
+source_pos = [ -150 0 0 ];
+incident_dir = [ 1 0 0 ];
+rays_in = Rays( nrays, 'collimated', source_pos, incident_dir, aperture, 'hexagonal' );
+
+fprintf( 'Tracing rays through the reflective sinusoidal surface...\n' );
+rays_through = bench.trace( rays_in );
+
+% Visualise the bench and ray paths.
+bench.draw( rays_through, 'lines', [], 2 );
+title( 'Reflective FSGD setup with sinusoidal free-form mirror', 'Color', 'w' );
+
+% Display the intensity pattern on the capture screen.
+figure( 'Name', 'FSGD reflective response', 'NumberTitle', 'Off' );
+imagesc( screen.image );
+axis image;
+colormap hot;
+colorbar;
+set( gca, 'YDir', 'normal' );
+title( 'Reflected pattern on the observation screen' );
+xlabel( 'Screen Y bins' );
+ylabel( 'Screen Z bins' );
+
+end
