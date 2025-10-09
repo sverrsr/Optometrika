@@ -49,3 +49,4 @@ example15.m: simulates a hexagonal array of spherical micro lenses
 example16.m: demonstrates STL export of various lenses
 
 example17.m: demonstrates a reflective free-surface gradient detector setup using a sinusoidal mirror profile, generates both ray-hit and continuous heat-map visualisations of the screen, and reports screen diagnostics/returns the raw data for further analysis
+example17_measured.m: repeats the reflective free-surface gradient detector setup but drives the mirror with a 501x408 grid of measured sag samples, showcasing how to trace against dense metrology data
