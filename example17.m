@@ -27,11 +27,11 @@ mirror = GeneralLens( [ 0 0 0 ], aperture, 'sinusoidal_surface', ...
     { 'air' 'mirror' }, amp_y, per_y, amp_z, per_z );
 bench.append( mirror );
 
-% Place a screen that captures the reflected bundle. The screen is rotated
-% by pi radians so that its normal points towards the incoming reflected
-% light.
-screen_distance = -120;
-screen_size = 120;
+% Place a screen close to the focal region created by the sinusoidal sag.
+% Positioning the screen nearer to the mirror (compared with the initial
+% demonstration) makes the interference/fringe pattern clearly visible.
+screen_distance = -60;
+screen_size = 90;
 screen = Screen( [ screen_distance 0 0 ], screen_size, screen_size, 512, 512 );
 screen.rotate( [ 0 1 0 ], pi );
 bench.append( screen );
