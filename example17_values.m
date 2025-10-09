@@ -18,6 +18,15 @@ I = conv2(double(A), K, 'same');
 imagesc(I); axis image; set(gca,'YDir','normal')
 % Set the colormap to grayscale and add a colorbar
 colormap(gray); colorbar
+%%
+I = imgaussfilt(double(A), 2);   % sigma=2; increase for more blur
+imagesc(I); axis image; set(gca,'YDir','normal')
+colormap(parula); colorbar
+%%
+imagesc(A);              % A is your 0/1 matrix
+axis image
+set(gca,'YDir','normal')
+colormap(parula); colorbar
 
 
 

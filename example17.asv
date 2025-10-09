@@ -23,7 +23,7 @@ amp_y = 0.4;      % amplitude along Y (millimetres)
 per_y = 40;     % period along Y
 amp_z = 0.0;    % amplitude along Z
 per_z = 40;     % period along Z
-aperture = 100;  % clear aperture diameter was 80
+aperture = 100;  % clear aperture diameter 
 
 mirror = GeneralLens( [ 0 0 0 ], aperture, 'sinusoidal_surface', ...
     { 'air' 'mirror' }, amp_y, per_y, amp_z, per_z );
