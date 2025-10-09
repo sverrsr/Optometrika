@@ -30,7 +30,7 @@ bench.append( mirror );
 % Place a screen close to the focal region created by the sinusoidal sag.
 % Positioning the screen nearer to the mirror (compared with the initial
 % demonstration) makes the interference/fringe pattern clearly visible.
-screen_distance = -60;
+screen_distance = -15;
 screen_size = 90;
 screen = Screen( [ screen_distance 0 0 ], screen_size, screen_size, 512, 512 );
 screen.rotate( [ 0 1 0 ], pi );
@@ -39,7 +39,7 @@ bench.append( screen );
 % Generate a collimated bundle of rays aimed at the mirror. The bundle
 % diameter is matched to the clear aperture of the surface.
 nrays = 4000;
-source_pos = [ -150 0 0 ];
+source_pos = [ -30 0 0 ];
 incident_dir = [ 1 0 0 ];
 rays_in = Rays( nrays, 'collimated', source_pos, incident_dir, aperture, 'hexagonal' );
 
@@ -97,3 +97,4 @@ half_size = ( size_px - 1 ) / 2;
 [ x, y ] = meshgrid( -half_size : half_size, -half_size : half_size );
 kernel = exp( -( x.^2 + y.^2 ) / ( 2 * sigma^2 ) );
 kernel = kernel / sum( kernel( : ) );
+end
