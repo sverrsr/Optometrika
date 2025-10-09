@@ -1,11 +1,13 @@
-function example17()
+function varargout = example17()
 %
 % Reflective free-surface gradient detector (FSGD) demonstration.
 %
 % This example builds a simple reflective setup that illuminates a
 % bi-axial sinusoidal free-form surface and records the reflected ray
 % distribution on a screen. The scene approximates the reflective mode of
-% the FSGD technique.
+% the FSGD technique. Call the example with output arguments (e.g.
+% [screen, rays, heatmap] = example17;) to inspect the captured data after
+% the figures are rendered.
 %
 % The surface profile is provided by sinusoidal_surface.m.
 %
@@ -79,6 +81,29 @@ end
 y_centres = linspace( -screen.w/2, screen.w/2, screen.wbins );
 z_centres = linspace( -screen.h/2, screen.h/2, screen.hbins );
 
+total_hits = sum( heatmap_image( : ) );
+peak_hit = max( heatmap_image( : ) );
+
+if total_hits > 0 && peak_hit > 0
+    [ z_idx, y_idx ] = ind2sub( size( heatmap_image ), find( heatmap_image == peak_hit, 1, 'first' ) );
+    peak_y_mm = y_centres( y_idx );
+    peak_z_mm = z_centres( z_idx );
+
+    [ Y_grid, Z_grid ] = meshgrid( y_centres, z_centres );
+    centroid_y = sum( sum( heatmap_image .* Y_grid ) ) / total_hits;
+    centroid_z = sum( sum( heatmap_image .* Z_grid ) ) / total_hits;
+
+    fprintf( '\nScreen diagnostics:\n' );
+    fprintf( '  Rays traced: %d\n', nrays );
+    fprintf( '  Rays recorded on screen: %.0f (%.1f%%)\n', total_hits, 100 * total_hits / nrays );
+    fprintf( '  Peak hit density: %.0f hits at Y = %.2f mm, Z = %.2f mm\n', peak_hit, peak_y_mm, peak_z_mm );
+    fprintf( '  Intensity centroid:  Y = %.2f mm, Z = %.2f mm\n', centroid_y, centroid_z );
+else
+    fprintf( '\nScreen diagnostics:\n' );
+    fprintf( '  Rays traced: %d\n', nrays );
+    fprintf( '  No rays intersected the observation screen.\n' );
+end
+
 figure( 'Name', 'FSGD reflective heat map', 'NumberTitle', 'Off' );
 hmap = heatmap( y_centres, z_centres, heatmap_smoothed );
 hmap.Colormap = parula( 256 );
@@ -88,6 +113,16 @@ hmap.CellLabelColor = 'none';
 hmap.Title = 'Continuous heat map of reflected ray density';
 hmap.XLabel = 'Screen Y (mm)';
 hmap.YLabel = 'Screen Z (mm)';
+
+if nargout >= 1
+    varargout{ 1 } = screen;
+end
+if nargout >= 2
+    varargout{ 2 } = rays_through;
+end
+if nargout >= 3
+    varargout{ 3 } = heatmap_smoothed;
+end
 
 end
 
