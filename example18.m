@@ -20,7 +20,7 @@ bench = Bench;
 % Load the synthetic "measured" dataset. Replace this call with your own
 % data loading routine (e.g. loading a MAT-file) when working with actual
 % measurement points.
-data = measured_surface_dataset();
+data = 'surfaceData1200.mat';
 
 % The sampling spans +/-50 mm along Y and +/-40 mm along Z, so choose an
 % aperture that comfortably covers the available data. The GeneralLens is

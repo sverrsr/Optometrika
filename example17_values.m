@@ -19,7 +19,7 @@ imagesc(I); axis image; set(gca,'YDir','normal')
 % Set the colormap to grayscale and add a colorbar
 colormap(gray); colorbar
 %%
-I = imgaussfilt(double(A), 2);   % sigma=2; increase for more blur
+I = imgaussfilt(double(A), 4);   % sigma=2; increase for more blur
 imagesc(I); axis image; set(gca,'YDir','normal')
 colormap(parula); colorbar
 %%
