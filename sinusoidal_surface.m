@@ -52,7 +52,9 @@ else
     ones_vec = ones( numel( dfd_y ), 1 );
     normals = [ ones_vec, -dfd_y, -dfd_z ];
     normals = normals ./ sqrt( sum( normals.^2, 2 ) );
-
+    
+    disp(size(normals));
+    disp(head(normals));
     x = normals;
 end
 end

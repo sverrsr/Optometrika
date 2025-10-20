@@ -40,9 +40,16 @@ screen.rotate( [ 0 1 0 ], pi );
 bench.append( screen );
 
 % Generate a collimated bundle of rays aimed at the mirror. The bundle
+<<<<<<< Updated upstream
 % diameter is matched to the clear aperture of the surface.
 nrays = 4000;
 source_pos = [ -30 0 0 ];
+=======
+% diameter is matched to the clear aperture of the surface. Increase both
+% the aperture and bundle diameter together to enlarge the mirror footprint.
+nrays = 100;
+source_pos = [ -150 0 0 ];
+>>>>>>> Stashed changes
 incident_dir = [ 1 0 0 ];
 rays_in = Rays( nrays, 'collimated', source_pos, incident_dir, aperture, 'hexagonal' );
 

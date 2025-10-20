@@ -22,14 +22,14 @@ peaks_surface_element = GeneralLens( [ 0 0 0 ], aperture, 'peaks_surface', ...
 bench.append( peaks_surface_element );
 
 % Place a capture screen downstream of the surface
-screen_distance = 70;   % mm along +X
+screen_distance = -70;   % mm along +X
 screen_size = 90;       % mm side length
 screen = Screen( [ screen_distance 0 0 ], screen_size, screen_size, 512, 512 );
 screen.rotate( [ 0 1 0 ], pi );
 bench.append( screen );
 
 % Generate a collimated bundle of rays aimed at the surface
-nrays = 5000;
+nrays = 10;
 source_pos = [ -120 0 0 ];
 incident_dir = [ 1 0 0 ];
 beam_diameter = aperture * 0.95;
