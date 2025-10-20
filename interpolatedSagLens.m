@@ -7,7 +7,9 @@ function out = interpolatedSagLens( y, z, args, flag )
 %   `yMesh`, or a struct with those fields already loaded. When FLAG == 0
 %   the interpolated sag is returned. Otherwise the routine returns unit
 %   normals oriented predominantly along +X, estimated via centred finite
-%   differences of the interpolant.
+%   differences of the interpolant. Values queried outside the sampled
+%   aperture are clamped to the bounding box of the grid to keep the ray
+%   tracer's optimisation routines well posed.
 %
 %   A second optional entry in ARGS can override the finite-difference
 %   spacing used for the normal estimation.
@@ -18,7 +20,7 @@ function out = interpolatedSagLens( y, z, args, flag )
 %
 %   See also GENERAL_LENS, GRIDDEDINTERPOLANT.
 
-persistent F yAxis zAxis fdStep cachedArgs
+persistent F yAxis zAxis fdStep cachedArgs yBounds zBounds
 
 if nargin < 4
     error( 'interpolatedSagLens:NotEnoughInputs', ...
@@ -66,7 +68,10 @@ if needsRefresh
             'Surface samples must form a monotonic grid in both dimensions.' );
     end
 
-    F = griddedInterpolant( { yAxis, zAxis }, sag, 'linear', 'none' );
+    F = griddedInterpolant( { yAxis, zAxis }, sag, 'linear', 'nearest' );
+
+    yBounds = [ yAxis( 1 ), yAxis( end ) ];
+    zBounds = [ zAxis( 1 ), zAxis( end ) ];
 
     dy = median( abs( diff( yAxis ) ) );
     dz = median( abs( diff( zAxis ) ) );
@@ -84,18 +89,21 @@ else
     fd = fdStep;
 end
 
+yc = clampToBounds( y, yBounds );
+zc = clampToBounds( z, zBounds );
+
 if flag == 0
-    out = F( y, z );
+    out = F( yc, zc );
     return;
 end
 
-yp = y + fd;
-yh = y - fd;
-zp = z + fd;
-zh = z - fd;
+yp = clampToBounds( y + fd, yBounds );
+yh = clampToBounds( y - fd, yBounds );
+zp = clampToBounds( z + fd, zBounds );
+zh = clampToBounds( z - fd, zBounds );
 
-dx_dy = ( F( yp, z ) - F( yh, z ) ) ./ ( 2 * fd );
-dx_dz = ( F( y, zp ) - F( y, zh ) ) ./ ( 2 * fd );
+dx_dy = ( F( yp, zc ) - F( yh, zc ) ) ./ ( 2 * fd );
+dx_dz = ( F( yc, zp ) - F( yc, zh ) ) ./ ( 2 * fd );
 
 nx = ones( size( dx_dy ) );
 ny = -dx_dy;
@@ -109,4 +117,9 @@ ny = ny ./ mag;
 nz = nz ./ mag;
 
 out = [ nx( : ), ny( : ), nz( : ) ];
+end
+
+function v = clampToBounds( values, bounds )
+%CLAMPTOBOUNDS Clip VALUES to lie within the inclusive range defined by BOUNDS.
+    v = min( max( values, bounds( 1 ) ), bounds( 2 ) );
 end
