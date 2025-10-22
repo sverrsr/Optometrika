@@ -19,6 +19,7 @@ ylabel('X');
 zlabel('Z');
 title('Surface Plot of surfaceData1200');
 
+
 %% Plotting normals
 [Nx, Ny, Nz] = surfnorm(x, y, z);
 h_norm = surfnorm(y, x, z);
@@ -28,7 +29,8 @@ surfnorm(y, x, z);
 
 %% Interpolating and Compare surface normals
 
-% Make Ngrid based on mesh. Needs to be sorted to get the same surface
+
+% Make Ngrid based on mesh
 [xa, ix] = sort(x(1,:));       % X axis (cols)
 [ya, iy] = sort(y(:,1));       % Y axis (rows)
 
@@ -42,8 +44,7 @@ Za = z(iy, ix);                % reorder Z to match sorted axes
 F = griddedInterpolant({xa, ya}, Za.', 'linear', 'none');  % F(x,y)
 
 % Evaluate Interpolated surface
-Zi = F(Xo', Yo');  % should equal Zo (check)
-Zi = Zi';
+Zi = F(Xo, Yo);  % should equal Zo (check)
 
 % Orginal surform
 [Nx0, Ny0, Nz0] = surfnorm(Xo, Yo, Za);   % "original" normals

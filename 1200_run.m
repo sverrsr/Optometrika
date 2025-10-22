@@ -14,23 +14,22 @@ bench = Bench;
 
 % Configure the PEAKS surface parameters
 aperture = 80;          % clear aperture diameter (mm)
-
-height_scale = 0.8;       % scale of the sag values (mm)
+height_scale = 6;       % scale of the sag values (mm)
 lateral_scale = 20;     % lateral scale applied before evaluating PEAKS
 
-peaks_surface_element = GeneralLens( [ 0 0 0 ], aperture, 'sinusoidal_surface', ...
+peaks_surface_element = GeneralLens( [ 0 0 0 ], aperture, 'peaks_surface', ...
     { 'air' 'mirror' }, height_scale, lateral_scale );
 bench.append( peaks_surface_element );
 
 % Place a capture screen downstream of the surface
-screen_distance = -15;   % mm along +X
+screen_distance = -20;   % mm along +X
 screen_size = 180;       % mm side length
 screen = Screen( [ screen_distance 0 1 ], screen_size, screen_size, 512, 512 );
 screen.rotate( [ 0 1 0 ], pi );
 bench.append( screen );
 
 % Generate a collimated bundle of rays aimed at the surface
-nrays = 1000;
+nrays = 100;
 source_pos = [ -120 0 0 ];
 incident_dir = [ 1 0 0 ];
 beam_diameter = aperture * 0.95;
