@@ -1,58 +1,16 @@
 %%
-clear arinterll; close all; clc;
+clear all; close all; clc;
 load surfaceData1200.mat 
 load surfMesh.mat
 %% Plots only the surface at s = 1200
 X = xMesh; Y = yMesh; Z = surfaceData1200;
 
-% Read data reads data as (Y, X, Z)
-
-h = surf(X, Y, Z);
-
-set(h, 'EdgeColor','none')   % hide black grid lines
-shading interp;      % optional – smooths the surface
-colormap parula;        % optional – sets color map
-colorbar;            % optional – adds color bar
-zlim([-2 2]); %Adjust Z reasonably
-xlabel('Y');
-ylabel('X');
-zlabel('Z');
-title('Surface Plot of surfaceData1200');
-
-%% Plotting normals
-[Nx, Ny, Nz] = surfnorm(X, Y, Z);
-h_norm = surfnorm(Y, X, Z);
-
-figure(2);surfnorm(Y, X, Z);
-
-%% Convert between meshgrid and ngrid formats
+%% Convert between meshgrid and ngrid formats 
 % https://se.mathworks.com/help/matlab/ref/ndgrid.html
 % MESHGRID: X, Y
 % NGRID: Xn, Yn
 
-% Sanity checks
-Xt = pagetranspose(X);
-Yt = pagetranspose(Y);
-
-%meshgrid -> ngrid
-[xa, ix] = sort(X(1,:));
-[ya, iy] = sort(Y(:,1));
-[Xn, Yn] = ndgrid(xa, ya);
-
-%[Xn,Yn] = ndgrid(X(1,:),Y(:,1));
-
-isequal(Xt,Xn)
-isequal(Yt,Yn)
-
-% No need for this. Just to compare if it works
-% ngrid -> meshgrid
-% 
-% Xo = permute(Xn, [2 1 3]);
-% Yo = permute(Yn, [2 1 3]);
-% 
-% isequal(X, Xo) & isequal(Y, Yo)
-%% Interpolating and Compare surface normals
-
+%% Interpolating and Compare surfaces
 % Make Ngrid based on mesh. Needs to be sorted to get the same surface
 [xa, ix] = sort(X(1,:));       % X axis (cols)
 [ya, iy] = sort(Y(:,1));       % Y axis (rows)
@@ -63,12 +21,16 @@ Za = Z(iy, ix);                % reorder Z to match sorted axes
 % Interpolant built on ngrid
 F = griddedInterpolant({xa, ya}, Za.', 'linear', 'none');  % F(X,Y)
 
-% Evaluate Interpolated surface
-Zi = F(X', Y');  % should equal Zo (check)
-Zi = Zi';
+% Evaluate Interpolated surface at original point to get Z
+Zi = F(X', Y')';  
+
+isequal(Zi, Z) % Is equal to Z
+isequal(Za.', Z) % Is equal to Z
+
+%% Interpolating and Compare surface normals
 
 % Orginal surform
-[Nx0, Ny0, Nz0] = surfnorm(X, Y, Za);   % "original" normals
+[Nx0, Ny0, Nz0] = surfnorm(X, Y, Z);   % "original" normals
 
 %Interpolated surfnorm
 [NxI, NyI, NzI] = surfnorm(X, Y, Zi);   % "interpolated" normals

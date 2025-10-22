@@ -19,42 +19,13 @@ function x = sinusoidal_surface( y, z, args, flag )
 %
 % Copyright: 2024 Optometrika contributors
 
-amp_y = args{ 1 };
-per_y = args{ 2 };
-if numel( args ) >= 3 && ~isempty( args{ 3 } )
-    amp_z = args{ 3 };
-else
-    amp_z = amp_y;
-end
-if numel( args ) >= 4 && ~isempty( args{ 4 } )
-    per_z = args{ 4 };
-else
-    per_z = per_y;
-end
-
-ky = 0;
-if isfinite( per_y ) && per_y ~= 0
-    ky = 2 * pi / per_y;
-end
-kz = 0;
-if isfinite( per_z ) && per_z ~= 0
-    kz = 2 * pi / per_z;
-end
 
 if flag == 0
-    x = amp_y * sin( ky * y ) + amp_z * sin( kz * z );
+    ;
 else
-    dfd_y = amp_y * ky * cos( ky * y );
-    dfd_z = amp_z * kz * cos( kz * z );
-
-    dfd_y = dfd_y( : );
-    dfd_z = dfd_z( : );
-    ones_vec = ones( numel( dfd_y ), 1 );
-    normals = [ ones_vec, -dfd_y, -dfd_z ];
-    normals = normals ./ sqrt( sum( normals.^2, 2 ) );
-    
-    disp(size(normals));
-    disp(head(normals));
-    x = normals;
+    c = 1 ./ sqrt( 1 + ( 2 * pi * args{1} / args{2} .* sin( 2 * pi / args{2} * r ) ).^2 );
+    s = sqrt( 1 - c.^2 );
+    th = atan2( z, y );
+    x = -sign( args{ 1 } ) * [ -sign( args{ 1 } ) * c, s .* cos( th ), s .* sin( th ) ];
 end
 end
