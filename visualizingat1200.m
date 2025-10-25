@@ -30,32 +30,14 @@ figure(2);surfnorm(Y, X, Z);
 % MESHGRID: X, Y
 % NGRID: Xn, Yn
 
-% Sanity checks
-Xt = pagetranspose(X);
-Yt = pagetranspose(Y);
-
-%meshgrid -> ngrid
+% Meshgrid -> ngrid
+% Needs to be sorted to get the same surface
 [xa, ix] = sort(X(1,:));
 [ya, iy] = sort(Y(:,1));
+
 [Xn, Yn] = ndgrid(xa, ya);
 
-%[Xn,Yn] = ndgrid(X(1,:),Y(:,1));
-
-isequal(Xt,Xn)
-isequal(Yt,Yn)
-
-% No need for this. Just to compare if it works
-% ngrid -> meshgrid
-% 
-% Xo = permute(Xn, [2 1 3]);
-% Yo = permute(Yn, [2 1 3]);
-% 
-% isequal(X, Xo) & isequal(Y, Yo)
 %% Interpolating and Compare surface normals
-
-% Make Ngrid based on mesh. Needs to be sorted to get the same surface
-[xa, ix] = sort(X(1,:));       % X axis (cols)
-[ya, iy] = sort(Y(:,1));       % Y axis (rows)
 
 % Evaluate Z on Ngrid
 Za = Z(iy, ix);                % reorder Z to match sorted axes
