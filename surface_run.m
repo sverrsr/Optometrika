@@ -23,10 +23,24 @@ x_limits = [xa(1), xa(end)];
 y_limits = [ya(1), ya(end)];
 grid_center = [mean(x_limits), mean(y_limits)];
 half_span = 0.5 * [diff(x_limits), diff(y_limits)];
-usable_radius = min(half_span);  % enforce a circular aperture inside the surface data
 
+% Leave a small buffer (half of the smallest grid spacing) so the optimizer
+% never evaluates the interpolant exactly at the edge, where it would need to
+% extrapolate.  This prevents NaNs at the surface boundary.
+dx = diff(xa);
+dy = diff(ya);
+dx_min = min(dx(:));
+dy_min = min(dy(:));
+if isempty(dx_min) || isempty(dy_min) || ~isfinite(dx_min) || ~isfinite(dy_min)
+    error('surface_run:InvalidGrid', 'Surface grid must contain at least two unique samples per axis.');
+end
+min_spacing = min([dx_min, dy_min]);
+edge_buffer = 0.5 * min_spacing;
+
+usable_radius = min(half_span) - edge_buffer;
 if usable_radius <= 0
-    error('surface_run:InvalidSurfaceBounds', 'Surface data has zero span in Y/Z.');
+    error('surface_run:InvalidSurfaceBounds', ...
+        'Surface data has insufficient span once edge buffer is removed.');
 end
 
 % Sag limits (used to place the screen/source with margin)
@@ -35,6 +49,8 @@ lens_depth = diff(z_limits);
 
 fprintf('surface\\_lens grid X in [%.2f, %.2f] mm, Y in [%.2f, %.2f] mm.\\n', ...
         x_limits(1), x_limits(2), y_limits(1), y_limits(2));
+fprintf('Applying %.2f mm edge buffer (grid min spacing %.2f mm).\\n', ...
+        edge_buffer, min_spacing);
 fprintf('Using circular clear aperture of %.2f mm (radius %.2f mm).\\n', ...
         2 * usable_radius, usable_radius);
 
@@ -66,7 +82,7 @@ Fdx = griddedInterpolant({ya, xa}, dZdx, 'linear');   % or 'makima'/'spline'
 Fdy = griddedInterpolant({ya, xa}, dZdy, 'linear');
 
 
-lens_args = {F, Fdx, Fdy, grid_center};  % <-- passed to surface_lens as args
+lens_args = {F, Fdx, Fdy, grid_center, x_limits, y_limits};
 
 %% --- Build the bench (same layout as your example) ---
 bench = Bench;

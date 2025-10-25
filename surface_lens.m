@@ -13,26 +13,58 @@ function x = surface_lens( y, z, args, flag )
 % third argument is a cell array holding the lens height argv{1}, the
 % surface slopes argv{2:3}, and optionally the center of the data grid
 % argv{4} (used to align the interpolated surface with the optical axis).
+% argv{5} and argv{6} can provide the finite limits of the underlying grid
+% ( [xmin xmax], [ymin ymax] ), which are used to clip evaluations inside the
+% tabulated domain when tracing rays.
 
 F   = args{1};   % height Z(x,y)
 Fdx = args{2};   % dZ/dx, called as Fdx(y,x)
 Fdy = args{3};   % dZ/dy, called as Fdy(y,x)
 
-if numel(args) >= 4 && ~isempty(args{4})
-    grid_center = args{4};
-    grid_center = double(grid_center(:).');
+arg_idx = 4;
+grid_center = [0, 0];
+if numel(args) >= arg_idx && ~isempty(args{arg_idx})
+    grid_center = double(args{arg_idx}(:).');
     if numel(grid_center) < 2
         grid_center(2) = 0;
     elseif numel(grid_center) > 2
         grid_center = grid_center(1:2);
     end
-else
-    grid_center = [0, 0];
+    arg_idx = arg_idx + 1;
+end
+
+x_limits = [-inf, inf];
+y_limits = [-inf, inf];
+if numel(args) >= arg_idx && ~isempty(args{arg_idx})
+    x_limits = double(args{arg_idx}(:).');
+    if numel(x_limits) < 2
+        x_limits(2) = x_limits(1);
+    elseif numel(x_limits) > 2
+        x_limits = x_limits(1:2);
+    end
+    arg_idx = arg_idx + 1;
+end
+if numel(args) >= arg_idx && ~isempty(args{arg_idx})
+    y_limits = double(args{arg_idx}(:).');
+    if numel(y_limits) < 2
+        y_limits(2) = y_limits(1);
+    elseif numel(y_limits) > 2
+        y_limits = y_limits(1:2);
+    end
 end
 
 % Map lens (y_in,z_in) -> original (x_orig,y_orig)
 x_orig = y + grid_center(1);      % original x
 y_orig = z + grid_center(2);      % original y
+
+% Keep evaluations inside the tabulated domain to avoid NaNs during the
+% numerical intersection search.
+if all(isfinite(x_limits))
+    x_orig = min(max(x_orig, x_limits(1)), x_limits(2));
+end
+if all(isfinite(y_limits))
+    y_orig = min(max(y_orig, y_limits(1)), y_limits(2));
+end
 
 
 if flag == 0
