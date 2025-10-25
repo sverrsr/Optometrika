@@ -67,13 +67,22 @@ classdef GeneralLens < Surface
             if nargin < 2
                 color = [ 1 1 1 .5 ];
             end
-            nrad = 50;
-            rad = linspace( self.D(1) / 2, self.D(2) / 2, nrad );
-            nang = 100;
-            ang = linspace( 0, 2 * pi, nang );
-            [ ang, rad ] = meshgrid( ang, rad );
-            
-            [ y, z ] = pol2cart( ang, rad );
+            if numel( self.D ) == 4 && all( self.D(1:2) == 0 )
+                % Rectangular clear aperture stored as [0;0;width;height]
+                ny = 128;
+                nz = 128;
+                y = linspace( -self.D(3) / 2, self.D(3) / 2, ny );
+                z = linspace( -self.D(4) / 2, self.D(4) / 2, nz );
+                [ y, z ] = meshgrid( y, z );
+            else
+                nrad = 50;
+                rad = linspace( self.D(1) / 2, self.D(2) / 2, nrad );
+                nang = 100;
+                ang = linspace( 0, 2 * pi, nang );
+                [ ang, rad ] = meshgrid( ang, rad );
+
+                [ y, z ] = pol2cart( ang, rad );
+            end
             x = self.funch( y, z, self.funca, 0 );
             S = [ x(:) y(:) z(:) ];
             
