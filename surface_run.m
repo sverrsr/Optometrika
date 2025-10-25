@@ -18,6 +18,26 @@ clear xMesh yMesh surfaceData1200
 [xa, ix] = sort(X(1,:));
 [ya, iy] = sort(Y(:,1));
 
+% Surface bounds (in the original mesh units)
+x_limits = [xa(1), xa(end)];
+y_limits = [ya(1), ya(end)];
+grid_center = [mean(x_limits), mean(y_limits)];
+half_span = 0.5 * [diff(x_limits), diff(y_limits)];
+usable_radius = min(half_span);  % enforce a circular aperture inside the surface data
+
+if usable_radius <= 0
+    error('surface_run:InvalidSurfaceBounds', 'Surface data has zero span in Y/Z.');
+end
+
+% Sag limits (used to place the screen/source with margin)
+z_limits = [min(Z(:)), max(Z(:))];
+lens_depth = diff(z_limits);
+
+fprintf('surface\\_lens grid X in [%.2f, %.2f] mm, Y in [%.2f, %.2f] mm.\\n', ...
+        x_limits(1), x_limits(2), y_limits(1), y_limits(2));
+fprintf('Using circular clear aperture of %.2f mm (radius %.2f mm).\\n', ...
+        2 * usable_radius, usable_radius);
+
 % Unsorted NGRID is made like this, but is not used in this code
 % [Xn, Yn] = ndgrid(xa, ya);
 
@@ -46,29 +66,29 @@ Fdx = griddedInterpolant({ya, xa}, dZdx, 'linear');   % or 'makima'/'spline'
 Fdy = griddedInterpolant({ya, xa}, dZdy, 'linear');
 
 
-lens_args = {F, Fdx, Fdy};  % <-- these are passed to surface_lens as args
+lens_args = {F, Fdx, Fdy, grid_center};  % <-- passed to surface_lens as args
 
 %% --- Build the bench (same layout as your example) ---
 bench = Bench;
 
-aperture = 80;  % mm
+aperture = 2 * usable_radius;  % mm, matches the usable surface data
 % Use 'air' to 'mirror' for a reflective test (no dispersion setup needed).
 % For a transmissive lens, swap 'mirror' -> a glass name present in your material set (e.g., 'bk7').
 elem = GeneralLens([0 0 0], aperture, 'surface_lens', { 'air' 'mirror' }, lens_args{:});
 bench.append(elem);
 
 % Screen downstream (along +X)
-screen_distance = -20;   % mm along +X (negative because of how Screen is placed/rotated)
-screen_size = 180;       % mm
+screen_distance = -max(20, lens_depth + aperture * 0.75);  % mm along +X
+screen_size = max(aperture * 1.25, 64);                    % mm
 screen = Screen([screen_distance 0 1], screen_size, screen_size, 512, 512);
 screen.rotate([0 1 0], pi);   % face back toward the optic
 bench.append(screen);
 
 % Collimated beam aimed along +X
-nrays = 100;
-source_pos   = [-120 0 0];
+nrays = 150;
+source_pos   = [-(lens_depth + aperture * 1.5) 0 0];
 incident_dir = [1 0 0];
-beam_diam    = aperture * 0.95;
+beam_diam    = aperture * 0.9;
 rays_in = Rays(nrays, 'collimated', source_pos, incident_dir, beam_diam, 'hexagonal');
 
 fprintf('Tracing rays through surface_lens ...\n');
@@ -76,6 +96,12 @@ rays_out = bench.trace(rays_in);
 
 % Visualize
 bench.draw(rays_out, 'lines', [], 1.5);
+axis equal;
+grid on;
+view(35, 20);
+xlabel('X (mm)'); ylabel('Y (mm)'); zlabel('Z (mm)');
+camlight('headlight'); camlight('left'); camlight('right');
+lighting gouraud;
 title('GeneralLens using surface_lens (interpolated surface)', 'Color','w');
 
 figure('Name','surface_lens screen capture','NumberTitle','Off');

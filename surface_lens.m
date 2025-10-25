@@ -10,16 +10,29 @@ function x = surface_lens( y, z, args, flag )
 %
 % LENS SURFACE defines a surface profile.
 % the first two input arguments are coordinates in the lens plane, the
-% third argument is a cell array holding the lens height argv{1}, and the
-% cosine period argv{2}.
+% third argument is a cell array holding the lens height argv{1}, the
+% surface slopes argv{2:3}, and optionally the center of the data grid
+% argv{4} (used to align the interpolated surface with the optical axis).
 
 F   = args{1};   % height Z(x,y)
 Fdx = args{2};   % dZ/dx, called as Fdx(y,x)
 Fdy = args{3};   % dZ/dy, called as Fdy(y,x)
 
+if numel(args) >= 4 && ~isempty(args{4})
+    grid_center = args{4};
+    grid_center = double(grid_center(:).');
+    if numel(grid_center) < 2
+        grid_center(2) = 0;
+    elseif numel(grid_center) > 2
+        grid_center = grid_center(1:2);
+    end
+else
+    grid_center = [0, 0];
+end
+
 % Map lens (y_in,z_in) -> original (x_orig,y_orig)
-x_orig = y;      % original x
-y_orig = z;      % original y
+x_orig = y + grid_center(1);      % original x
+y_orig = z + grid_center(2);      % original y
 
 
 if flag == 0
