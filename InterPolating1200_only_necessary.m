@@ -40,9 +40,13 @@ Zi = F(X', Y')';  isequal(Zi, Z); % should equal Z (check).
 % It is now possible to evaluate both the height and the surface normal in
 % an arbitrary point
 
+% griddedInterpolant uses NDGRID order (rows→ya, cols→xa), 
+% so vectors are {ya, xa} to match dZdx/dZdy layout
+% Evaluate in that order: Fdx(yq, xq) and Fdy(yq, xq), 
+% which matches {ya, xa}.
 [dZdx, dZdy] = gradient(Zi, xa, ya);          % X spacing first, then Y
-Fdx = griddedInterpolant({ya, xa}, dZdx, 'linear');   % or 'makima'/'spline'
-Fdy = griddedInterpolant({ya, xa}, dZdy, 'linear');
+Fdx = griddedInterpolant({ya, xa}, dZdx, 'linear','none');   % or 'makima'/'spline'
+Fdy = griddedInterpolant({ya, xa}, dZdy, 'linear','none');
 
 %% To be evaluated inside the lens function
 xq = 0.0; yq = 0.0; % Example points

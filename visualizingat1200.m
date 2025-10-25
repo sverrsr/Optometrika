@@ -1,5 +1,7 @@
 %%
-clear arinterll; close all; clc;
+clear all; close all; clc;
+
+%%
 load surfaceData1200.mat 
 load surfMesh.mat
 %% Plots only the surface at s = 1200
@@ -109,17 +111,6 @@ x0 = 0.12; y0 = -0.07;
 n = [Fx(x0,y0); Fy(x0,y0); Fz(x0,y0)];
 n_a = n ./ norm(n);                        % re-unitize after interpolation
 
-%% Single points
-
-% if xa, ya are vectors of nonuniform spacing:
-[dZdy, dZdx] = gradient(Za, ya, xa);   % sizes Ny×Nx
-
-Fx = griddedInterpolant({xa, ya}, dZdx.', 'linear','none');
-Fy = griddedInterpolant({xa, ya}, dZdy.', 'linear','none');
-
-gx = Fx(x0,y0); gy = Fy(x0,y0);
-
-n = [-gx, -gy, 1]; n_b = n./norm(n);
 
 
 
