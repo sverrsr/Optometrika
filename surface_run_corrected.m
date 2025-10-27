@@ -70,7 +70,6 @@ Za = Z(iy, ix);
 
 % Interpolant built on ngrid
 F = griddedInterpolant({xa, ya}, Za.', 'linear', 'none');  % F(X,Y)
-clear Za
 
 % Zi is the interpolated surface
 % Evaluate Interpolated surface
@@ -81,11 +80,15 @@ Zi = F(X', Y')';  isequal(Zi, Z); % should equal Z (check).
 % It is now possible to evaluate both the height and the surface normal in
 % an arbitrary point
 
-% griddedInterpolant uses NDGRID order (rows→ya, cols→xa),
-% so provide derivative arrays in the same orientation.
-[dZdy, dZdx] = gradient(Zi, ya, xa);          % First output is ∂Z/∂y, second is ∂Z/∂x
-Fdx = griddedInterpolant({xa, ya}, dZdx.', 'linear', 'none');   % dZ/dx evaluated as Fdx(x,y)
-Fdy = griddedInterpolant({xa, ya}, dZdy.', 'linear', 'none');   % dZ/dy evaluated as Fdy(x,y)
+% Compute slopes directly on the sorted ndgrid (Za) so the coordinate vectors
+% provided to GRADIENT align with the matrix dimensions.  The first output is
+% ∂Z/∂y (rows correspond to ya) and the second is ∂Z/∂x (columns correspond to xa).
+[dZdy_nd, dZdx_nd] = gradient(Za, ya, xa);
+
+% griddedInterpolant expects the first grid vector to map to rows, therefore we
+% transpose the slope arrays to obtain functions evaluated as F*(x, y).
+Fdx = griddedInterpolant({xa, ya}, dZdx_nd.', 'linear', 'none');   % dZ/dx evaluated as Fdx(x,y)
+Fdy = griddedInterpolant({xa, ya}, dZdy_nd.', 'linear', 'none');   % dZ/dy evaluated as Fdy(x,y)
 
 lens_args = {F, Fdx, Fdy, grid_center, x_limits, y_limits};
 
