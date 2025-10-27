@@ -69,7 +69,7 @@ end
 
 if flag == 0
     % --- Return sag along x (lens axis): x = Z(x_orig, y_orig)
-    x = F(x_orig, y_orig);   % <-- your F expects (x,y)
+    x = -F(x_orig, y_orig);   % <-- your F expects (x,y)
 
 else
     % --- Return unit normal [nx, ny, nz] in lens coordinates

@@ -46,11 +46,11 @@ classdef GeneralLens < Surface
             self.r = ar;
             self.D = aD;
 
-            if numel(self.D) >= 4 && self.D(3) > 0 && self.D(4) > 0
-                % Provide a circular envelope big enough to contain the rectangle
-                circumscribed_diam = hypot(self.D(3), self.D(4)); % full diameter
-                self.D(1) = 0;                    % inner diameter
-                self.D(2) = circumscribed_diam;   % outer diameter used by tracer
+            if numel(self.D) >= 4 && all(self.D(1:2) == 0)
+                % self.D = [0;0;width_y;width_z]  (full widths)
+                inscribed_diam = min(self.D(3), self.D(4));  % full diameter
+                self.D(1) = 0;                 % inner diameter
+                self.D(2) = inscribed_diam;    % outer diameter for tracing
             end
 
             self.funcs = afunc;
@@ -71,24 +71,23 @@ classdef GeneralLens < Surface
         end
         
         function h = draw(self, color)
-            if nargin < 2, color = [1 1 1 .5]; end
-        
-            % --- replace the old 'if numel(self.D)==4 && all(self.D(1:2)==0)' with:
-            isRect = (numel(self.D) >= 4) && (self.D(3) > 0) && (self.D(4) > 0);
-        
-            if isRect
-                ny = 128; nz = 128;
-                y = linspace(-self.D(3)/2, self.D(3)/2, ny);
-                z = linspace(-self.D(4)/2, self.D(4)/2, nz);
-                [y,z] = meshgrid(y,z);
-            else
-                nrad = 50; nang = 100;
-                rad = linspace(self.D(1)/2, self.D(2)/2, nrad);
-                ang = linspace(0, 2*pi, nang);
-                [ang,rad] = meshgrid(ang,rad);
-                [y,z] = pol2cart(ang,rad);
-            end
-            
+    if nargin < 2, color = [1 1 1 .5]; end
+
+    % --- replace the old 'if numel(self.D)==4 && all(self.D(1:2)==0)' with:
+    isRect = (numel(self.D) >= 4) && (self.D(3) > 0) && (self.D(4) > 0);
+
+    if isRect
+        ny = 128; nz = 128;
+        y = linspace(-self.D(3)/2, self.D(3)/2, ny);
+        z = linspace(-self.D(4)/2, self.D(4)/2, nz);
+        [y,z] = meshgrid(y,z);
+    else
+        nrad = 50; nang = 100;
+        rad = linspace(self.D(1)/2, self.D(2)/2, nrad);
+        ang = linspace(0, 2*pi, nang);
+        [ang,rad] = meshgrid(ang,rad);
+        [y,z] = pol2cart(ang,rad);
+    end
             x = self.funch( y, z, self.funca, 0 );
             S = [ x(:) y(:) z(:) ];
             

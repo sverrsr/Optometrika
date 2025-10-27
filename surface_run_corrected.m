@@ -1,20 +1,16 @@
-function varargout = examplesurface_lensRun_corrected()
+function varargout = examplesurface_lensRun()
 %%
-% Corrected runner for the interpolated surface lens demo. Builds the
-% interpolants with consistent axis ordering so the surface normals are
-% aligned with the underlying geometry.
-
 clear all; close all; clc;
+%%
 
-load surfaceData1200.mat
+load surfaceData1200.mat 
 load surfMesh.mat
-
 %% Plots only the surface at s = 1200
 X = xMesh; Y = yMesh; Z = surfaceData1200;
 clear xMesh yMesh surfaceData1200
 
 %% Convert between meshgrid and ngrid formats
-% Gridded interpolant uses NGRID format, so it's necessary to convert
+% Gridded interpolant uses NGRID format, so it's necessary to convert 
 % https://se.mathworks.com/help/matlab/ref/ndgrid.html
 % MESHGRID: X, Y
 % NGRID: Xn, Yn
@@ -43,16 +39,11 @@ end
 min_spacing = min([dx_min, dy_min]);
 edge_buffer = 0.5 * min_spacing;
 
-usable_half_span = half_span - edge_buffer;
-if any(usable_half_span <= 0)
+usable_radius = min(half_span) - edge_buffer;
+if usable_radius <= 0
     error('surface_run:InvalidSurfaceBounds', ...
         'Surface data has insufficient span once edge buffer is removed.');
 end
-
-% Rectangular clear aperture dimensions in lens coordinates (Y,Z)
-% Lens Y corresponds to the original X axis, and lens Z to the original Y axis.
-lens_span_y = diff(x_limits);
-lens_span_z = diff(y_limits);
 
 % Sag limits (used to place the screen/source with margin)
 z_limits = [min(Z(:)), max(Z(:))];
@@ -63,105 +54,92 @@ lens_depth = diff(z_limits);
 
 %% Interpolating and Compare surface normals
 % To evaluate the surface at all points it is necessary to interpolate the
-% surface
+% surfae
 
 % Evaluate Z on Ngrid
 Za = Z(iy, ix);
 
 % Interpolant built on ngrid
 F = griddedInterpolant({xa, ya}, Za.', 'linear', 'none');  % F(X,Y)
+clear Za
 
-% Zi is the interpolated surface
+% Zi is teh interpolated surface
 % Evaluate Interpolated surface
-% Converting to Ngrid yields better performance.
+% Converting to Ngrid yield better performance. Keep '
 Zi = F(X', Y')';  isequal(Zi, Z); % should equal Z (check).
 
 %% SINGLE POINT EVALUATION
 % It is now possible to evaluate both the height and the surface normal in
 % an arbitrary point
 
-% Compute slopes directly on the sorted ndgrid (Za) using finite differences so
-% the coordinate spacing always matches the matrix dimensions, even on MATLAB
-% releases where GRADIENT rejects non-uniform spacing vectors.
-Za = double(Za);
-xa = double(xa(:).');  % row vector (x samples)
-ya = double(ya(:));     % column vector (y samples)
+% griddedInterpolant uses NDGRID order (rows→ya, cols→xa), 
+% so vectors are {ya, xa} to match dZdx/dZdy layout
+% Evaluate in that order: Fdx(yq, xq) and Fdy(yq, xq), 
+% which matches {ya, xa}.
+[dZdx, dZdy] = gradient(Zi, xa, ya);          % X spacing first, then Y
+Fdx = griddedInterpolant({ya, xa}, dZdx, 'linear', 'none');   % or 'makima'/'spline'
+Fdy = griddedInterpolant({ya, xa}, dZdy, 'linear', 'none');
 
-nx = numel(xa);
-ny = numel(ya);
-
-if nx < 2 || ny < 2
-    error('surface_run:InvalidGrid', 'Surface grid must contain at least two samples per axis.');
-end
-
-dx_forward = diff(xa);
-dy_forward = diff(ya);
-
-if any(dx_forward == 0) || any(dy_forward == 0)
-    error('surface_run:RepeatedSamples', 'Surface grid contains duplicate coordinates that prevent slope evaluation.');
-end
-
-% Preallocate derivative arrays (rows -> ya, columns -> xa)
-dZdx_nd = zeros(ny, nx);
-dZdy_nd = zeros(ny, nx);
-
-% Central differences for interior columns (dZ/dx)
-if nx > 2
-    denom_x = xa(3:end) - xa(1:end-2);
-    dZdx_nd(:, 2:nx-1) = bsxfun(@rdivide, Za(:, 3:end) - Za(:, 1:end-2), denom_x);
-end
-% Forward/backward differences for boundary columns
-dZdx_nd(:, 1)   = (Za(:, 2) - Za(:, 1))   ./ dx_forward(1);
-dZdx_nd(:, nx)  = (Za(:, nx) - Za(:, nx-1)) ./ dx_forward(end);
-
-% Central differences for interior rows (dZ/dy)
-if ny > 2
-    denom_y = ya(3:end) - ya(1:end-2);
-    dZdy_nd(2:ny-1, :) = bsxfun(@rdivide, Za(3:end, :) - Za(1:end-2, :), denom_y);
-end
-% Forward/backward differences for boundary rows
-dZdy_nd(1, :)   = (Za(2, :) - Za(1, :))   ./ dy_forward(1);
-dZdy_nd(ny, :)  = (Za(ny, :) - Za(ny-1, :)) ./ dy_forward(end);
-
-% griddedInterpolant expects the first grid vector to map to rows, therefore we
-% transpose the slope arrays to obtain functions evaluated as F*(x, y).
-Fdx = griddedInterpolant({xa, ya}, dZdx_nd.', 'linear', 'none');   % dZ/dx evaluated as Fdx(x,y)
-Fdy = griddedInterpolant({xa, ya}, dZdy_nd.', 'linear', 'none');   % dZ/dy evaluated as Fdy(x,y)
 
 lens_args = {F, Fdx, Fdy, grid_center, x_limits, y_limits};
 
 %% --- Build the bench (same layout as your example) ---
 bench = Bench;
 
+aperture = 2 * usable_radius;  % mm, matches the usable surface data
 % Use 'air' to 'mirror' for a reflective test (no dispersion setup needed).
 % For a transmissive lens, swap 'mirror' -> a glass name present in your material set (e.g., 'bk7').
+
+lens_span_y = diff(x_limits);
+lens_span_z = diff(y_limits);
 rect_aperture = [0; 0; lens_span_y; lens_span_z];
-elem = GeneralLens([0 0 0], rect_aperture, 'surface_lens_corrected', { 'air' 'mirror' }, lens_args{:});
+
+usable_half_span = half_span - edge_buffer;
+ap_half_y = usable_half_span(1);
+ap_half_z = usable_half_span(2);
+
+rect_aperture = [0; 0; 2*ap_half_y; 2*ap_half_z];   % FULL widths (required)
+elem = GeneralLens([0 0 0], rect_aperture, 'surface_lens', {'air','mirror'}, lens_args{:});
+
+
 bench.append(elem);
 
-incident_tilt_deg = 0;
-incident_dir = [cosd(incident_tilt_deg) 0 -sind(incident_tilt_deg)];
+% Screen downstream (along +X)
+screen_distance = -max(20, lens_depth + aperture * 0.75);  % mm along +X
+screen_size = max(aperture * 1.25, 64);                    % mm
+screen = Screen([screen_distance 0 1], screen_size, screen_size, 512, 512);
+screen.rotate([0 1 0], pi);   % face back toward the optic
+bench.append(screen);
 
-% Screen sized to capture the reflected bundle
-screen_width  = max(lens_span_y * 1.25, 64);  % mm (Y)
-screen_height = max(lens_span_z * 1.25, 64);  % mm (Z)
+% Collimated beam aimed along +X
+nrays = 50;
+source_pos   = [-(lens_depth + aperture * 1.5) 0 0];
+incident_dir = [1 0 0];
 
-% Place a capture screen downstream of the surface
-screen_distance = -1000;   % mm along +X
-screen = Screen( [ screen_distance 0 1 ], screen_width, screen_height, 512, 512 );
-screen.rotate( [ 0 1 0 ], pi );
-bench.append( screen );
+circ_radius = min(ap_half_y, ap_half_z);            % inscribed circle radius
+beam_diam   = 0.9 * 2 * circ_radius;                % stays the same
 
-% Collimated beam aimed normal to the surface
-nrays = 500;
-source_pos = [ -1200 0 0 ];
-incident_dir = [ 1 0 0 ];
-aperture = 80;
-beam_diam = aperture * 0.95;
 
-rays_in = Rays(nrays, 'collimated', source_pos, incident_dir, beam_diam, 'hexagonal');
 
-fprintf('Tracing rays through surface_lens_corrected ...\n');
+% beam: square side >= the larger rectangle side
+ap_half_y = usable_half_span(1);
+ap_half_z = usable_half_span(2);
+rect_aperture = [0; 0; 2*ap_half_y; 2*ap_half_z];
+
+
+rect_wy = 2*ap_half_y;
+rect_wz = 2*ap_half_z;
+beam_side = 0.98 * max(rect_wy, rect_wz);  % slightly smaller than the larger side
+
+
+
+rays_in = Rays(nrays, 'collimated', source_pos, incident_dir, beam_side, 'square');
+
+figure('Name','Launch footprint (source plane)');
+scatter(rays_in.r(:,2), rays_in.r(:,3), 6, 'filled'); axis equal; grid on;
+xlabel('Y at source'); ylabel('Z at source'); title('Rays launch footprint');
+
+fprintf('Tracing rays through surface_lens ...\n');
 rays_out = bench.trace(rays_in);
 
 % Visualize
@@ -172,15 +150,12 @@ view(35, 20);
 xlabel('X (mm)'); ylabel('Y (mm)'); zlabel('Z (mm)');
 camlight('headlight'); camlight('left'); camlight('right');
 lighting gouraud;
-title('GeneralLens using surface\_lens\_corrected (interpolated surface)', 'Color','w');
+title('GeneralLens using surface_lens (interpolated surface)', 'Color','w');
 
-figure('Name','surface\_lens screen capture','NumberTitle','Off');
-y_coords = linspace(-screen.w/2, screen.w/2, screen.wbins);
-z_coords = linspace(-screen.h/2, screen.h/2, screen.hbins);
-imagesc(y_coords, z_coords, screen.image);
-axis image; colormap hot; colorbar;
+figure('Name','surface_lens screen capture','NumberTitle','Off');
+imagesc(screen.image); axis image; colormap hot; colorbar;
 set(gca,'YDir','normal');
-title('Illumination after surface\_lens\_corrected'); xlabel('Screen Y (mm)'); ylabel('Screen Z (mm)');
+title('Illumination after surface_lens'); xlabel('Screen Y bins'); ylabel('Screen Z bins');
 
 if nargout >= 1, varargout{1} = screen; end
 if nargout >= 2, varargout{2} = rays_out; end

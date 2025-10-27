@@ -39,18 +39,11 @@ end
 min_spacing = min([dx_min, dy_min]);
 edge_buffer = 0.5 * min_spacing;
 
-usable_half_span = half_span - edge_buffer;
-if any(usable_half_span <= 0)
+usable_radius = min(half_span) - edge_buffer;
+if usable_radius <= 0
     error('surface_run:InvalidSurfaceBounds', ...
         'Surface data has insufficient span once edge buffer is removed.');
 end
-
-% Rectangular clear aperture dimensions in lens coordinates (Y,Z)
-% Lens Y corresponds to the original X axis, and lens Z to the original Y axis.
-usable_span_y = 2 * usable_half_span(1);
-usable_span_z = 2 * usable_half_span(2);
-lens_span_y = diff(x_limits);
-lens_span_z = diff(y_limits);
 
 % Sag limits (used to place the screen/source with margin)
 z_limits = [min(Z(:)), max(Z(:))];
@@ -92,6 +85,21 @@ lens_args = {F, Fdx, Fdy, grid_center, x_limits, y_limits};
 
 %% --- Build the bench (same layout as your example) ---
 bench = Bench;
+
+aperture = 2 * usable_radius;  % mm, matches the usable surface data
+
+usable_half_span = half_span - edge_buffer;
+if any(usable_half_span <= 0)
+    error('surface_run:InvalidSurfaceBounds', ...
+        'Surface data has insufficient span once edge buffer is removed.');
+end
+
+% Rectangular clear aperture dimensions in lens coordinates (Y,Z)
+% Lens Y corresponds to the original X axis, and lens Z to the original Y axis.
+usable_span_y = 2 * usable_half_span(1);
+usable_span_z = 2 * usable_half_span(2);
+lens_span_y = diff(x_limits);
+lens_span_z = diff(y_limits);
 
 clear_span_max = max(lens_span_y, lens_span_z);
 
@@ -137,19 +145,12 @@ screen = Screen( [ screen_distance 0 1 ], screen_width, screen_height, 512, 512 
 screen.rotate( [ 0 1 0 ], pi );
 bench.append( screen );
 
-% Collimated beam aimed 45 degrees toward the surface
-% nrays = 150;
-% source_pos   = -source_offset * incident_dir;
-% beam_diam    = min(usable_span_y, usable_span_z) * 0.9;
-
-nrays = 500;
-source_pos = [ -1200 0 0 ];
-incident_dir = [ 1 0 0 ];
-aperture = 80;
-beam_diam = aperture * 0.95;
-
+% Collimated beam aimed along +X
+nrays = 5000;
+source_pos   = [-(lens_depth + aperture * 1.5) 0 0];
+incident_dir = [1 0 0];
+beam_diam    = aperture * 0.9;
 rays_in = Rays(nrays, 'collimated', source_pos, incident_dir, beam_diam, 'hexagonal');
-
 
 fprintf('Tracing rays through surface_lens ...\n');
 rays_out = bench.trace(rays_in);
@@ -165,12 +166,9 @@ lighting gouraud;
 title('GeneralLens using surface_lens (interpolated surface)', 'Color','w');
 
 figure('Name','surface_lens screen capture','NumberTitle','Off');
-y_coords = linspace(-screen.w/2, screen.w/2, screen.wbins);
-z_coords = linspace(-screen.h/2, screen.h/2, screen.hbins);
-imagesc(y_coords, z_coords, screen.image);
-axis image; colormap hot; colorbar;
+imagesc(screen.image); axis image; colormap hot; colorbar;
 set(gca,'YDir','normal');
-title('Illumination after surface_lens'); xlabel('Screen Y (mm)'); ylabel('Screen Z (mm)');
+title('Illumination after surface_lens'); xlabel('Screen Y bins'); ylabel('Screen Z bins');
 
 if nargout >= 1, varargout{1} = screen; end
 if nargout >= 2, varargout{2} = rays_out; end
