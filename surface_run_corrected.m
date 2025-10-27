@@ -80,10 +80,48 @@ Zi = F(X', Y')';  isequal(Zi, Z); % should equal Z (check).
 % It is now possible to evaluate both the height and the surface normal in
 % an arbitrary point
 
-% Compute slopes directly on the sorted ndgrid (Za) so the coordinate vectors
-% provided to GRADIENT align with the matrix dimensions.  The first output is
-% ∂Z/∂y (rows correspond to ya) and the second is ∂Z/∂x (columns correspond to xa).
-[dZdy_nd, dZdx_nd] = gradient(Za, ya, xa);
+% Compute slopes directly on the sorted ndgrid (Za) using finite differences so
+% the coordinate spacing always matches the matrix dimensions, even on MATLAB
+% releases where GRADIENT rejects non-uniform spacing vectors.
+Za = double(Za);
+xa = double(xa(:).');  % row vector (x samples)
+ya = double(ya(:));     % column vector (y samples)
+
+nx = numel(xa);
+ny = numel(ya);
+
+if nx < 2 || ny < 2
+    error('surface_run:InvalidGrid', 'Surface grid must contain at least two samples per axis.');
+end
+
+dx_forward = diff(xa);
+dy_forward = diff(ya);
+
+if any(dx_forward == 0) || any(dy_forward == 0)
+    error('surface_run:RepeatedSamples', 'Surface grid contains duplicate coordinates that prevent slope evaluation.');
+end
+
+% Preallocate derivative arrays (rows -> ya, columns -> xa)
+dZdx_nd = zeros(ny, nx);
+dZdy_nd = zeros(ny, nx);
+
+% Central differences for interior columns (dZ/dx)
+if nx > 2
+    denom_x = xa(3:end) - xa(1:end-2);
+    dZdx_nd(:, 2:nx-1) = bsxfun(@rdivide, Za(:, 3:end) - Za(:, 1:end-2), denom_x);
+end
+% Forward/backward differences for boundary columns
+dZdx_nd(:, 1)   = (Za(:, 2) - Za(:, 1))   ./ dx_forward(1);
+dZdx_nd(:, nx)  = (Za(:, nx) - Za(:, nx-1)) ./ dx_forward(end);
+
+% Central differences for interior rows (dZ/dy)
+if ny > 2
+    denom_y = ya(3:end) - ya(1:end-2);
+    dZdy_nd(2:ny-1, :) = bsxfun(@rdivide, Za(3:end, :) - Za(1:end-2, :), denom_y);
+end
+% Forward/backward differences for boundary rows
+dZdy_nd(1, :)   = (Za(2, :) - Za(1, :))   ./ dy_forward(1);
+dZdy_nd(ny, :)  = (Za(ny, :) - Za(ny-1, :)) ./ dy_forward(end);
 
 % griddedInterpolant expects the first grid vector to map to rows, therefore we
 % transpose the slope arrays to obtain functions evaluated as F*(x, y).
