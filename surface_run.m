@@ -105,7 +105,7 @@ bench.append(elem);
 screen_offset = max(20, lens_depth + 0.75 * clear_span_max);   % mm along the reflected chief ray
 source_offset = max(20, lens_depth + 1.5 * clear_span_max);    % mm along the incoming beam direction
 
-incident_tilt_deg = 45;
+incident_tilt_deg = 0;
 incident_dir = [cosd(incident_tilt_deg) 0 -sind(incident_tilt_deg)];
 
 % Screen placed along the specular reflection of the chief ray
@@ -114,24 +114,42 @@ screen_height = max(lens_span_z * 1.25, 64);  % mm (Z)
 surface_normal = [1 0 0];
 reflection_dir = incident_dir - 2 * dot(incident_dir, surface_normal) * surface_normal;
 reflection_dir = reflection_dir / norm(reflection_dir);
-screen_pos = screen_offset * reflection_dir;
-screen = Screen(screen_pos, screen_width, screen_height, 512, 512);
 
-screen_normal = -reflection_dir;  % screen faces incoming rays
-align_axis = cross([1 0 0], screen_normal);
-axis_norm = norm(align_axis);
-if axis_norm > eps
-    align_axis = align_axis / axis_norm;
-    align_angle = atan2(axis_norm, dot([1 0 0], screen_normal));
-    screen.rotate(align_axis, align_angle);
-end
-bench.append(screen);
+% screen_pos = screen_offset * reflection_dir;
+% screen = Screen(screen_pos, screen_width, screen_height, 512, 512);
+% 
+% screen_normal = -reflection_dir;  % screen faces incoming rays
+% align_axis = cross([1 0 0], screen_normal);
+% axis_norm = norm(align_axis);
+% 
+% if axis_norm > eps
+%     align_axis = align_axis / axis_norm;
+%     align_angle = atan2(axis_norm, dot([1 0 0], screen_normal));
+%     screen.rotate(align_axis, align_angle);
+% end
+% 
+% bench.append(screen);
+
+% Place a capture screen downstream of the surface
+screen_distance = -1000;   % mm along +X
+screen_size = 180;       % mm side length
+screen = Screen( [ screen_distance 0 1 ], screen_width, screen_height, 512, 512 );
+screen.rotate( [ 0 1 0 ], pi );
+bench.append( screen );
 
 % Collimated beam aimed 45 degrees toward the surface
-nrays = 5000;
-source_pos   = -source_offset * incident_dir;
-beam_diam    = min(usable_span_y, usable_span_z) * 0.9;
+% nrays = 150;
+% source_pos   = -source_offset * incident_dir;
+% beam_diam    = min(usable_span_y, usable_span_z) * 0.9;
+
+nrays = 500;
+source_pos = [ -1200 0 0 ];
+incident_dir = [ 1 0 0 ];
+aperture = 80;
+beam_diam = aperture * 0.95;
+
 rays_in = Rays(nrays, 'collimated', source_pos, incident_dir, beam_diam, 'hexagonal');
+
 
 fprintf('Tracing rays through surface_lens ...\n');
 rays_out = bench.trace(rays_in);

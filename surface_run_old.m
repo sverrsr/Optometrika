@@ -1,8 +1,7 @@
+function varargout = examplesurface_lensRun()
 %%
 clear all; close all; clc;
 %%
-
-function varargout = examplesurface_lensRun()
 
 load surfaceData1200.mat 
 load surfMesh.mat
