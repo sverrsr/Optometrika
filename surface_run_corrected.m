@@ -99,8 +99,9 @@ ap_half_y = usable_half_span(1);
 ap_half_z = usable_half_span(2);
 
 rect_aperture = [0; 0; 2*ap_half_y; 2*ap_half_z];   % FULL widths (required)
-elem = GeneralLens([0 0 0], rect_aperture, 'surface_lens', {'air','mirror'}, lens_args{:});
 
+elem = GeneralLens([0 0 0], rect_aperture, 'surface_lens', {'mirror','air'}, lens_args{:});
+elem.rotate([0 1 0], pi);   % face back toward the optic
 
 bench.append(elem);
 
@@ -112,7 +113,7 @@ screen.rotate([0 1 0], pi);   % face back toward the optic
 bench.append(screen);
 
 % Collimated beam aimed along +X
-nrays = 50;
+nrays = 5000;
 source_pos   = [-(lens_depth + aperture * 1.5) 0 0];
 incident_dir = [1 0 0];
 
