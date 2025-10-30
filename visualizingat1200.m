@@ -111,6 +111,22 @@ x0 = 0.12; y0 = -0.07;
 n = [Fx(x0,y0); Fy(x0,y0); Fz(x0,y0)];
 n_a = n ./ norm(n);                        % re-unitize after interpolation
 
+%% New surface
+A = 5;     % height of the blob
+a = 100;     % width
+G = -A * exp(- (X.^2 + Y.^2) / a^2);
+h = surf(X,Y,G);
+
+set(h, 'EdgeColor','none')   % hide black grid lines
+shading interp;      % optional – smooths the surface
+colormap parula;        % optional – sets color map
+colorbar;            % optional – adds color bar
+%zlim([-2 2]); %Adjust Z reasonably
+xlabel('Y');
+ylabel('X');
+zlabel('Z');
+title('Surface Plot of surfaceData1200');
+
 
 
 

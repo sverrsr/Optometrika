@@ -6,7 +6,12 @@ clear all; close all; clc;
 load surfaceData1200.mat 
 load surfMesh.mat
 %% Plots only the surface at s = 1200
-X = xMesh; Y = yMesh; Z = surfaceData1200;
+X = xMesh; Y = yMesh; %Z = surfaceData1200;
+
+% Gaussian blob
+A = 5;     % height of the blob
+a = 100;     % width
+Z = -A * exp(- (X.^2 + Y.^2) / a^2);
 clear xMesh yMesh surfaceData1200
 
 %% Convert between meshgrid and ngrid formats
@@ -113,7 +118,7 @@ screen.rotate([0 1 0], pi);   % face back toward the optic
 bench.append(screen);
 
 % Collimated beam aimed along +X
-nrays = 5000;
+nrays = 100;
 source_pos   = [-(lens_depth + aperture * 1.5) 0 0];
 incident_dir = [1 0 0];
 
@@ -134,7 +139,7 @@ beam_side = 0.98 * max(rect_wy, rect_wz);  % slightly smaller than the larger si
 
 
 
-rays_in = Rays(nrays, 'collimated', source_pos, incident_dir, beam_side, 'square');
+rays_in = Rays(nrays, 'collimated', source_pos, incident_dir, beam_side, 'random');
 
 figure('Name','Launch footprint (source plane)');
 scatter(rays_in.r(:,2), rays_in.r(:,3), 6, 'filled'); axis equal; grid on;
