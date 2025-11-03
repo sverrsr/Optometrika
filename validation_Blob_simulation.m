@@ -1,11 +1,14 @@
 function [screen, rays_out, bench, surf, state] = examplesurface_lensRun(X, Y, Z, state, do_plot)
-% examplesurface_lensRun
-% X, Y: meshgrid-sized coordinates (Ny x Nx)
-% Z   : surface heights at this timestep (Ny x Nx)
-% state: pass [] on first call; reuse returned state afterwards
-% do_plot: logical, optional (default: false). If true, draws bench & screen.
+%EXAMPLESURFACE_LENSRUN Trace rays through a dynamic surface-lens profile.
+%   [SCREEN, RAYS_OUT, BENCH, SURF, STATE] = examplesurface_lensRun(X,Y,Z,STATE,DO_PLOT)
+%   updates the optical bench defined in validation_GaussianBlob.m to use the
+%   surface heights Z sampled on the meshgrid defined by X and Y.  STATE must be
+%   [] on the first invocation; the returned STATE object should be reused for
+%   subsequent frames to avoid rebuilding the bench.
 %
-% Returns: screen, rays_out, bench, surf, state (updated)
+%   Set DO_PLOT=true to visualise the screen irradiance after each trace.  The
+%   routine keeps track of figure handles internally so that subsequent frames
+%   update in-place instead of opening a new window every time.
 
 if nargin < 5, do_plot = false; end
 is_init = (nargin < 4) || isempty(state);
@@ -80,11 +83,10 @@ if is_init
     rays_out = bench.trace(rays_in);
 
     % Optional plots (first frame)
+    plot_handles = [];
+    frame_idx = 1;
     if do_plot
-        figure('Name','surface_lens screen capture','NumberTitle','Off');
-        imagesc(screen.image); axis image; colormap hot; colorbar;
-        set(gca,'YDir','normal');
-        title('Illumination after surface_lens'); xlabel('Screen Y bins'); ylabel('Screen Z bins');
+        plot_handles = update_screen_plot([], screen.image, frame_idx);
     end
 
     % Pack state to reuse next frames
@@ -93,7 +95,8 @@ if is_init
         'xa', xa, 'ya', ya, 'ix', ix, 'iy', iy, ...
         'grid_center', grid_center, 'x_limits', x_limits, 'y_limits', y_limits, ...
         'bench', bench, 'screen', screen, 'surf', surf, 'rays_in', rays_in, ...
-        'usable_half_span', usable_half_span, 'edge_buffer', edge_buffer);
+        'usable_half_span', usable_half_span, 'edge_buffer', edge_buffer, ...
+        'plot_handles', plot_handles, 'frame_idx', frame_idx);
 
 else
     % Update only the values (fast path)
@@ -109,13 +112,48 @@ else
     % Re-trace with the same rays
     rays_out = bench.trace(state.rays_in);
 
+    % Advance frame counter and refresh plot if requested
+    state.frame_idx = state.frame_idx + 1;
     if do_plot
-        % if you created a figure yourself, just refresh it here if needed
-        figure(findobj('Name','surface_lens screen capture'));
-        imagesc(screen.image); axis image; colormap hot; colorbar;
-        set(gca,'YDir','normal');
-        title('Illumination after surface_lens'); xlabel('Screen Y bins'); ylabel('Screen Z bins');
-        drawnow;
+        state.plot_handles = update_screen_plot(state.plot_handles, screen.image, state.frame_idx);
     end
 end
+end
+
+end
+
+function plot_handles = update_screen_plot(plot_handles, image, frame_idx)
+%UPDATE_SCREEN_PLOT Create or refresh the screen intensity visualization.
+
+if nargin < 3 || isempty(frame_idx)
+    frame_idx = 1;
+end
+
+% Validate existing handles. All graphics handles must still be live.
+required_fields = {'fig','ax','im','title'};
+if isempty(plot_handles) || ~all(isfield(plot_handles, required_fields)) || ...
+        ~all(isgraphics([plot_handles.fig, plot_handles.ax, plot_handles.im, plot_handles.title]))
+    % Create a new figure hierarchy if any handle is missing/invalid
+    hFig = figure('Name','surface_lens screen capture','NumberTitle','Off');
+    hAx  = axes('Parent', hFig);
+    hIm  = imagesc('Parent', hAx, 'CData', image);
+    axis(hAx, 'image');
+    colormap(hAx, 'hot');
+    colorbar('peer', hAx);
+    set(hAx, 'YDir', 'normal');
+    hTitle = title(hAx, sprintf('Illumination after surface\\_lens (frame %d)', frame_idx));
+    xlabel(hAx, 'Screen Y bins');
+    ylabel(hAx, 'Screen Z bins');
+
+    plot_handles = struct('fig', hFig, 'ax', hAx, 'im', hIm, 'title', hTitle);
+else
+    % Update the image content and title on the existing figure
+    set(plot_handles.im, 'CData', image);
+    if isgraphics(plot_handles.title)
+        set(plot_handles.title, 'String', sprintf('Illumination after surface\\_lens (frame %d)', frame_idx));
+    end
+end
+
+drawnow limitrate;
+
 end

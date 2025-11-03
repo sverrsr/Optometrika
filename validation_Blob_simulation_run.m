@@ -8,30 +8,29 @@ x = linspace(-Lx/2, Lx/2, Nx);
 y = linspace(-Ly/2, Ly/2, Ny);
 [X, Y] = meshgrid(x, y);
 
-% Optional: pre-allocate storage for screen images
-store_images = true;
+% Optional visualisation/recording controls
+store_images = true;          % set false to skip storing every frame
+live_plot    = true;          % set false for headless batch processing
+
+% Trace the first frame (initialises the bench/state)
+[screen, ~, ~, ~, state] = validation_Blob_simulation(X, Y, u(:,:,1), [], live_plot);
+
 if store_images
-    % Get one frame to size the buffer
-    [screen0, ~, ~, ~, state] = validation_Blob_simulation(X, Y, u(:,:,1), [], false);
-    scr = screen0.image;
+    scr = screen.image;
     screen_stack = zeros([size(scr), Nt], 'like', scr);
     screen_stack(:,:,1) = scr;
-else
-    state = [];
-    validation_Blob_simulation(X, Y, u(:,:,1), state, true); % show plots if you want
 end
 
 % Process remaining frames
 for k = 2:Nt
     Zk = u(:,:,k);
-    [screen, ~, ~, ~, state] = validation_Blob_simulation(X, Y, Zk, state, false);
+    [screen, ~, ~, ~, state] = validation_Blob_simulation(X, Y, Zk, state, live_plot);
     if store_images
         screen_stack(:,:,k) = screen.image;
     end
-    % If you want a live view, flip do_plot=true in the call above.
 end
 
-% Example: quick playback of the screen intensity (if stored)
+% Example: quick playback of the stored screen intensity
 if store_images
     figure('Name','Screen intensity over time','NumberTitle','Off');
     him = imagesc(screen_stack(:,:,1)); axis image; colormap hot; colorbar;
