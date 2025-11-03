@@ -1,6 +1,6 @@
-function [screen, rays_out, bench, surf, state] = examplesurface_lensRun(X, Y, Z, state, do_plot)
-%EXAMPLESURFACE_LENSRUN Trace rays through a dynamic surface-lens profile.
-%   [SCREEN, RAYS_OUT, BENCH, SURF, STATE] = examplesurface_lensRun(X,Y,Z,STATE,DO_PLOT)
+function [screen, rays_out, bench, surf, state] = validation_Blob_simulation(X, Y, Z, state, do_plot)
+%VALIDATION_BLOB_SIMULATION Trace rays through a dynamic surface-lens profile.
+%   [SCREEN, RAYS_OUT, BENCH, SURF, STATE] = validation_Blob_simulation(X,Y,Z,STATE,DO_PLOT)
 %   updates the optical bench defined in validation_GaussianBlob.m to use the
 %   surface heights Z sampled on the meshgrid defined by X and Y.  STATE must be
 %   [] on the first invocation; the returned STATE object should be reused for
