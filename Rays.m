@@ -693,7 +693,23 @@ classdef Rays
                             out =  rinter( :, 2 ) < -surf.w/2 | rinter( :, 2 ) > surf.w/2 | ...
                                 rinter( :, 3 ) < -surf.h/2 | rinter( :, 3 ) > surf.h/2;
                         elseif isprop( surf, 'D' ) && ~isempty( surf.D )
-                            if length( surf.D ) == 1
+                            if isprop( surf, 'rectDims' ) && ~isempty( surf.rectDims )
+                                inner_w = surf.rectDims(1);
+                                inner_h = surf.rectDims(2);
+                                outer_w = surf.rectDims(3);
+                                outer_h = surf.rectDims(4);
+
+                                inside_inner = false( size( rinter, 1 ), 1 );
+                                if inner_w > 0 && inner_h > 0
+                                    inside_inner = ( rinter( :, 2 ) > -inner_w / 2 ) & ( rinter( :, 2 ) < inner_w / 2 ) & ...
+                                                   ( rinter( :, 3 ) > -inner_h / 2 ) & ( rinter( :, 3 ) < inner_h / 2 );
+                                end
+
+                                outside_outer = ( rinter( :, 2 ) < -outer_w / 2 ) | ( rinter( :, 2 ) > outer_w / 2 ) | ...
+                                                ( rinter( :, 3 ) < -outer_h / 2 ) | ( rinter( :, 3 ) > outer_h / 2 );
+
+                                out = isnan( rinter( :, 2 ) ) | isnan( rinter( :, 3 ) ) | inside_inner | outside_outer;
+                            elseif length( surf.D ) == 1
                                 out = sum( rinter( :, 2:3 ).^2, 2 ) - 1e-12 > ( surf.D / 2 )^2;
                             else
                                 r2 = sum( rinter( :, 2:3 ).^2, 2 );

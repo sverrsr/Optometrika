@@ -30,6 +30,7 @@ classdef GeneralLens < Surface
         funcs = '' % lens surface function name string
         funch = [] % the corresponding function handle
         funca = [] % argument list for the function
+        rectDims = [] % optional [innerW; innerH; outerW; outerH] footprint for rectangular apertures
      end
     
     methods
@@ -45,11 +46,15 @@ classdef GeneralLens < Surface
             end
             self.r = ar;
             self.D = aD;
+            self.rectDims = [];
 
-            if numel(self.D) >= 4 && self.D(3) > 0 && self.D(4) > 0
+            if numel(aD) >= 4 && aD(3) > 0 && aD(4) > 0
+                % Remember the rectangular footprint for intersection tests and drawing
+                self.rectDims = aD(1:4);
+
                 % Provide a circular envelope big enough to contain the rectangle
-                circumscribed_diam = hypot(self.D(3), self.D(4)); % full diameter
-                self.D(1) = 0;                    % inner diameter
+                circumscribed_diam = hypot(aD(3), aD(4)); % full diameter
+                self.D(1) = 0;                    % inner diameter (no central stop by default)
                 self.D(2) = circumscribed_diam;   % outer diameter used by tracer
             end
 
@@ -74,12 +79,12 @@ classdef GeneralLens < Surface
             if nargin < 2, color = [1 1 1 .5]; end
         
             % --- replace the old 'if numel(self.D)==4 && all(self.D(1:2)==0)' with:
-            isRect = (numel(self.D) >= 4) && (self.D(3) > 0) && (self.D(4) > 0);
-        
+            isRect = ~isempty(self.rectDims) && (self.rectDims(3) > 0) && (self.rectDims(4) > 0);
+
             if isRect
                 ny = 128; nz = 128;
-                y = linspace(-self.D(3)/2, self.D(3)/2, ny);
-                z = linspace(-self.D(4)/2, self.D(4)/2, nz);
+                y = linspace(-self.rectDims(3)/2, self.rectDims(3)/2, ny);
+                z = linspace(-self.rectDims(4)/2, self.rectDims(4)/2, nz);
                 [y,z] = meshgrid(y,z);
             else
                 nrad = 50; nang = 100;
