@@ -165,10 +165,15 @@ classdef Rays
                 p( :, 1 ) = zeros( 1, cnt );
                 p( :, 2 ) = linspace( -diameter/2, diameter/2, cnt ); % all rays starting from the center
             elseif strcmp( rflag, 'random' )
-                cnt1 = round( cnt * 4 / pi );
-                p( :, 1 ) = diameter * ( rand( cnt1, 1 ) - 0.5 ); % horizontal positions
-                p( :, 2 ) = diameter * ( rand( cnt1, 1 ) - 0.5 ); % vertical positions
-                p( p( :, 1 ).^2 + p( :, 2 ).^2 > diameter^2 / 4, : ) = []; % leave rays only within the diameter
+                % Uniform random distribution within a square footprint whose
+                % side length equals the requested diameter.
+                %
+                % Previously the random pattern used a circular footprint by
+                % over-generating points and trimming them to a disk.  This
+                % produced a circular launch area even when the caller
+                % expected a square pattern.  Instead, sample exactly the
+                % requested number of rays directly inside the square bounds.
+                p = diameter * ( rand( cnt, 2 ) - 0.5 );
             elseif strcmp( rflag, 'hexagonal' )
                 % find the closest hexagonal number to cnt
                 cnt1 = round( cnt * 2 * sqrt(3) / pi );
