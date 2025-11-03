@@ -86,6 +86,7 @@ else
 
     x = [nx, ny, nz];
 
+
     % Keep orientation (pointing ~ +x). Flip if needed:
     flipmask = (nx < 0);
     if any(flipmask, 'all')
