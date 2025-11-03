@@ -8,9 +8,9 @@ load surfMesh.mat
 %% Plots only the surface at s = 1200
 X = xMesh; Y = yMesh; %Z = surfaceData1200;
 
-A = 15;   
-a = 100;   
-Z = A * exp(- (X.^2 + Y.^2) / a^2);
+A = 7;   % Depth
+a = 100;   % WIdth
+Z = -A * exp(- (X.^2 + Y.^2) / a^2);
 
 clear xMesh yMesh surfaceData1200
 
@@ -111,7 +111,7 @@ screen.rotate([1 0 0], pi);   % face back toward the optic
 bench.append(screen);
 
 % Collimated beam aimed along +X
-nrays = 20;
+nrays = 10000;
 source_distance = 300;
 source_pos   = [source_distance 0 0];
 incident_dir = [-1 0 0];
