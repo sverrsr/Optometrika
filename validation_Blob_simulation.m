@@ -120,7 +120,6 @@ else
 end
 end
 
-end
 
 function plot_handles = update_screen_plot(plot_handles, image, frame_idx)
 %UPDATE_SCREEN_PLOT Create or refresh the screen intensity visualization.

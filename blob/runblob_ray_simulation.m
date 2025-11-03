@@ -5,7 +5,7 @@
 %   time-series progresses.
 
 % Load the simulated wavefront (Ny x Nx x Nt)
-u = h5read(fullfile(pwd, 'blob', 'wave.h5'), '/u');
+u = h5read(fullfile('wave.h5'), '/u');
 [Ny, Nx, Nt] = size(u);
 
 % Build the mesh that corresponds to u(:,:,k)
