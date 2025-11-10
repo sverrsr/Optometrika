@@ -13,10 +13,6 @@ function x = coslens( y, z, args, flag )
 % third argument is a cell array holding the lens height argv{1}, and the
 % cosine period argv{2}.
 
-<<<<<<<< HEAD:functions/coslens.m
-
-========
->>>>>>>> alex/master:src/coslens.m
 r = sqrt( y.^2 + z.^2 );
 if flag == 0
     x = args{1} * ( 1 - cos( 2 * pi / args{2} * r ) );
