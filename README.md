@@ -14,6 +14,7 @@ The library is compact and fast. It was written using Matlab classes and is full
 
 Thank you for downloading Optometrika, enjoy it!
 
+
 ## List of examples:
 
 example1.m: tests the basic functionality of the Optometrika library
@@ -48,4 +49,15 @@ example15.m: simulates a hexagonal array of spherical micro lenses
 
 example16.m: demonstrates STL export of various lenses
 
-example17.m: demonstrates a reflective free-surface gradient detector setup using a sinusoidal mirror profile, generates both ray-hit and continuous heat-map visualisations of the screen, and reports screen diagnostics/returns the raw data for further analysis
+example17.m: demonstrates tracing of optical pathlength (opl) for three different lenses
+
+example18.m: demonstrates optical path length through wedged optical windows
+
+example19.m: tests precision of the numerical solver in default and precision mode
+
+example20.m: demonstrates arbitrary topology surface
+
+## To acknowledge use of this software, please cite the following publication:
+
+A. Schultze and Y. Petrov. OptoMetrika -Open source ray tracer for MATLAB. 2021.
+[DOI: 10.13140/RG.2.2.10027.98081/2](https://dx.doi.org/10.13140/RG.2.2.10027.98081/2)

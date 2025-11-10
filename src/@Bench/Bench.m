@@ -139,7 +139,14 @@ classdef Bench < handle
             
             if new_figure_fl == 1
                 fname = dbstack;  % get debugging info
-                [ ~, fname ] = fname.name; % get the second (original) call function name
+                
+                if length(fname)>1
+                    [ ~, fname ] = fname.name; % get the second (original) call function name
+                else
+                    fname ='';
+                end
+                
+                
                 figure( 'Name', [ 'OPTOMETRIKA: ' fname ], 'NumberTitle', 'Off', ...
                     'Position', [ 0 0 1024 1024 ], ...
                     'Color', 'k' );
@@ -325,8 +332,18 @@ classdef Bench < handle
             rays( 1 ) = rays_in;
             for i = 1 : self.cnt % loop through the optic system
                 rays( i + 1 ) = rays( i ).interaction( self.elem{ i }, out_fl );
+                
+%                 if(0) %helpful debug output of traced rays
+%                     disp(['Tracing through element ' num2str(i) ': ' class(self.elem{i}) ]);
+%                     %.r -> next origin
+%                     %.n -> next direction
+%                     disp(['r: ' num2str(mean(rays(i).r,'omitnan')) '->' num2str(mean(rays(i+1).r,'omitnan'))]) 
+%                     disp(['n: ' num2str(mean(rays(i).n,'omitnan')) '->' num2str(mean(rays(i+1).n,'omitnan'))]) 
+%                 end         
+                
             end
-        end
+        end % trace()       
+        
     end
     
 end
