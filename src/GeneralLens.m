@@ -30,8 +30,15 @@ classdef GeneralLens < Surface
         funcs = '' % lens surface function name string
         funch = [] % the corresponding function handle
         funca = [] % argument list for the function
+<<<<<<< HEAD:GeneralLens.m
         rectDims = [] % optional [innerW; innerH; outerW; outerH] footprint for rectangular apertures
      end
+=======
+        type  = 'cart'; % 'cart','pol'
+    end
+     
+ 
+>>>>>>> alex/master:src/GeneralLens.m
     
     methods
         function self = GeneralLens( ar, aD, afunc, aglass, varargin )

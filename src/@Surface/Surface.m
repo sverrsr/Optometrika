@@ -15,15 +15,30 @@ classdef Surface < handle
         r = [ 0 0 0 ];  % location vector
         R = [];       % radius of the tangent sphere
         k = [];         % conic constant
-        glass  = { 'air' 'air' }; % material in front and behind the surface
+        glass  = { 'vacuum' 'vacuum' }; % material in front and behind the surface
     end
     
     properties ( SetAccess = private )
         rotax = [ 1 0 0 ];  % rotation axis for rotation transformation
         rotang = 0;        % rotation angle about the rotax, radians      
         n = [ 1 0 0 ];      % orientation (normal) vector, can be set by a rotate function only
+		
+		
+
+		
     end
     
+	methods (Static)
+		function [v_c, l_c] =rodrigues_composition( v_a,l_a, v_b, l_b )
+			%combines two euler rodrigues rotations v_a*l_a and v_b*l_b 
+			
+		    l_c = 2*acos(  cos(l_a/2)*cos(l_b/2)-sin(l_a/2)*sin(l_b/2)*dot(v_a,v_b));
+			v_c  = (sin(l_a/2)*cos(l_b/2)*v_a + cos(l_a/2)*sin(l_b/2)*v_b + ...
+						 sin(l_a/2)*sin(l_b/2)*cross(v_a,v_b))./ sin(l_c/2);
+		 end
+	end
+	
+	
     methods
         
         function b = copy( self )
@@ -38,11 +53,25 @@ classdef Surface < handle
             if abs( rot_angle ) > pi
                 error( 'Rotation angle should be [ -pi pi ]!' );
             end
+            % rotate the normal about the rot_axis by rot_angle (radians)		
+			%append rotation to existing rotation, Rodrigues rotation
+			
+			if ~(rot_angle == 0)
+			[self.rotax, self.rotang] =self.rodrigues_composition( self.rotax,self.rotang, rot_axis, rot_angle);
+            self.n = rodrigues_rot( self.n, rot_axis, rot_angle );
+            end         
+        end
+  
+        function rotate_flip( self, rot_axis, rot_angle )
+            if abs( rot_angle ) > pi
+                error( 'Rotation angle should be [ -pi pi ]!' );
+            end
             % rotate the normal about the rot_axis by rot_angle (radians)
             self.rotax = rot_axis;
             self.rotang = self.rotang + rot_angle;
             self.n = rodrigues_rot( self.n, rot_axis, rot_angle );
-            if abs( self.rotang ) > pi/2
+            if abs( self.rotang ) > pi/2 && ...
+                    ~(isa(self,'Screen') || isa(self,'ScreenWavefront'))
                 self.rotang = self.rotang - sign( self.rotang ) * pi;
                 self.R = -self.R;  % surface upside-down
                 self.glass = fliplr( self.glass ); % change material ordering
