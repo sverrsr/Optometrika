@@ -17,7 +17,7 @@ for i=1:5
             prof = 2/3*[1 1 1; 1 1 1; 0 0 0; 0 0 0]; %step profile (45 deg)
             mirror.profile_set(prof);
             mirror.plot();
-            suptitle('Step Surface 1');
+            sgtitle('Step Surface 1');
         
         case 2
             % a flat mirror with a step profile
@@ -25,14 +25,14 @@ for i=1:5
             prof = 0.2/3*[1 1 1; 1 1 1; 0 0 0; 0 0 0]; %step profile (0.45 deg)
             mirror.profile_set(prof);
             mirror.plot();
-            suptitle('Step Surface 2');
+            sgtitle('Step Surface 2');
         case 3
             %a complex mirror with a letter "E"
             mirror = SurfaceGeneric([10 0 0],[20 20], @(X,Y) 0.1*X .* exp(-X.^2 - Y.^2),{ 'air' 'mirror' } );
             prof = 0.03*[0 0 0 0;0 0 0 0; 0 1 1 0; 0 1 1 0; 0 1 0 0; 0 1 0 0; 0 1 1 0; 0 1 1 0;0 1 0 0;0 1 0 0; 0 1 1 0; 0 1 1 0; 0 0 0 0;0 0 0 0]; %letter E
             mirror.profile_set(prof);
             mirror.plot();
-            suptitle('Surface 2 ("E")');
+            sgtitle('Surface 2 ("E")');
             
         case 4
             % sphere in cartesian coordinates
@@ -40,7 +40,7 @@ for i=1:5
             fun_sph = @(x,y) r*sqrt(1-x.^2-y.^2);
             mirror = SurfaceGeneric([30 00 0],[40 40],fun_sph,{ 'air' 'mirror' } );
             mirror.plot();
-            suptitle('Sphere');
+            sgtitle('Sphere');
         case 5
             %sphere in spherical coordinates
              mirror = SurfaceGeneric([30 00 0],[40 40],@(x,y) 0.*x+0*y,{ 'air' 'mirror' } );
