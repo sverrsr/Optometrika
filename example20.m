@@ -8,7 +8,7 @@ close all;
 
 tic;
 
-for i=1:5
+for i=1:6
     bench = Bench;
     switch i
         case 1
@@ -22,14 +22,14 @@ for i=1:5
         case 2
             % a flat mirror with a step profile
             mirror = SurfaceGeneric([10 00 0],[20 20],@(x,y) 0*x+0*y,{ 'air' 'mirror' } );
-            prof = 0.2/3*[1 1 1; 1 1 1; 0 0 0; 0 0 0]; %step profile (0.45 deg)
+            prof = 5*[1 1 1; 1 1 1; 0 0 0; 0 0 0]; %step profile (0.45 deg)
             mirror.profile_set(prof);
             mirror.plot();
             sgtitle('Step Surface 2');
         case 3
             %a complex mirror with a letter "E"
             mirror = SurfaceGeneric([10 0 0],[20 20], @(X,Y) 0.1*X .* exp(-X.^2 - Y.^2),{ 'air' 'mirror' } );
-            prof = 0.03*[0 0 0 0;0 0 0 0; 0 1 1 0; 0 1 1 0; 0 1 0 0; 0 1 0 0; 0 1 1 0; 0 1 1 0;0 1 0 0;0 1 0 0; 0 1 1 0; 0 1 1 0; 0 0 0 0;0 0 0 0]; %letter E
+            prof = 5*[0 0 0 0;0 0 0 0; 0 1 1 0; 0 1 1 0; 0 1 0 0; 0 1 0 0; 0 1 1 0; 0 1 1 0;0 1 0 0;0 1 0 0; 0 1 1 0; 0 1 1 0; 0 0 0 0;0 0 0 0]; %letter E
             mirror.profile_set(prof);
             mirror.plot();
             sgtitle('Surface 2 ("E")');
@@ -56,6 +56,22 @@ for i=1:5
              mirror.R = 20; % switch to 'spherical'
              mirror.plot();
              mirror.plot_spherical();
+          
+        case 6
+            mirror = SurfaceGeneric([10 0 0],[20 20],@(x,y) 0*x+0*y,{ 'air' 'mirror' });
+        
+            H = 5;
+            n = 80;
+            prof = zeros(n,n);
+        
+            % diagonal step: one side of the diagonal is raised
+            [X, Y] = meshgrid(1:n, 1:n);
+            prof(Y > X) = H;
+        
+            mirror.profile_set(prof);
+            mirror.plot();
+            view(45,25);
+            sgtitle('Step Surface (diagonal sharp step)');
              
              
              
