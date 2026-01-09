@@ -151,7 +151,7 @@ classdef Bench < handle
                     color = [ .25 .25 .25 1 ];
                     obj.draw( color );
                 else
-                    color = [ 1 1 1 alpha ];
+                    color = [0.13 0.13 0.13 alpha]; % [ 1 1 1 alpha ];
                     obj.draw( color );
                 end
             end

@@ -341,7 +341,8 @@ text( a2, r(2) + 0.05 * Rm, 0, 'S2', 'FontSize', 24 );
 set( f, 'Units', 'inches' );
 pos = get( f, 'Position');
 set( f, 'PaperOrientation', 'landscape', 'PaperSize', [ pos(3) pos(4) ] );
-print( f, [ name '.pdf' ], '-dpdf', '-r0' );
+%print( f, [ name '.pdf' ], '-dpdf', '-r0' );
+exportapp(f, [name '.pdf']);
 
 
 
