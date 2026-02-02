@@ -362,10 +362,25 @@ classdef Rays
                         wrong_dir = dot( nrms * sign( surf.R(1) ), self.n, 2 ) < 0;
                         self.I( wrong_dir ) = 0; % zero for the rays that point away from the screen for the image formation
                         rays_out.r( wrong_dir, : ) = Inf * rays_out.r( wrong_dir, : );
-                        
-                        surf.image = hist2( rtr( :, 2 ), rtr( :, 3 ), self.I, ...
-                            linspace( -surf.w/2, surf.w/2, surf.wbins ), ...
-                            linspace( -surf.h/2, surf.h/2, surf.hbins ) );
+
+                        xedges = linspace( -surf.w/2, surf.w/2, surf.wbins );
+                        yedges = linspace( -surf.h/2, surf.h/2, surf.hbins );
+                        samples = 1;
+                        if isprop( surf, 'samples' ) && ~isempty( surf.samples )
+                            samples = max( 1, round( surf.samples ) );
+                        end
+                        if samples > 1
+                            dx = surf.w / max( surf.wbins - 1, 1 );
+                            dy = surf.h / max( surf.hbins - 1, 1 );
+                            jitter_x = ( rand( self.cnt, samples ) - 0.5 ) * dx;
+                            jitter_y = ( rand( self.cnt, samples ) - 0.5 ) * dy;
+                            sample_x = repmat( rtr( :, 2 ), 1, samples ) + jitter_x;
+                            sample_y = repmat( rtr( :, 3 ), 1, samples ) + jitter_y;
+                            sample_w = repmat( self.I, 1, samples ) / samples;
+                            surf.image = hist2( sample_x( : ), sample_y( : ), sample_w( : ), xedges, yedges );
+                        else
+                            surf.image = hist2( rtr( :, 2 ), rtr( :, 3 ), self.I, xedges, yedges );
+                        end
                         surf.image = flipud( surf.image ); % to get from matrix to image form
                         surf.image = fliplr( surf.image ); % because y-axis points to the left
                     end
@@ -682,9 +697,24 @@ classdef Rays
                             mel = max( abs( el ) );
                             md = max( maz, mel );
                             if isfinite( md )
-                                surf.image = hist2( az, el, self.I, ...
-                                    linspace( -md, md, surf.azbins ), ...
-                                    linspace( -md, md, surf.elbins ) );
+                                azedges = linspace( -md, md, surf.azbins );
+                                eledges = linspace( -md, md, surf.elbins );
+                                samples = 1;
+                                if isprop( surf, 'samples' ) && ~isempty( surf.samples )
+                                    samples = max( 1, round( surf.samples ) );
+                                end
+                                if samples > 1
+                                    daz = ( 2 * md ) / max( surf.azbins - 1, 1 );
+                                    del = ( 2 * md ) / max( surf.elbins - 1, 1 );
+                                    jitter_az = ( rand( self.cnt, samples ) - 0.5 ) * daz;
+                                    jitter_el = ( rand( self.cnt, samples ) - 0.5 ) * del;
+                                    sample_az = repmat( az, 1, samples ) + jitter_az;
+                                    sample_el = repmat( el, 1, samples ) + jitter_el;
+                                    sample_w = repmat( self.I, 1, samples ) / samples;
+                                    surf.image = hist2( sample_az( : ), sample_el( : ), sample_w( : ), azedges, eledges );
+                                else
+                                    surf.image = hist2( az, el, self.I, azedges, eledges );
+                                end
                             end
                         end
                     end
@@ -1037,5 +1067,4 @@ classdef Rays
         end
    end
 end
-
 

@@ -28,6 +28,7 @@ classdef Retina < Surface
         ang = pi/2;  % aperture angle
         azbins = 512; % number of azimuth bins
         elbins = 512; % number of elevation bins
+        samples = 1; % samples per pixel for supersampling
         image = [];
     end
     
@@ -110,4 +111,3 @@ classdef Retina < Surface
     end
     
 end
-

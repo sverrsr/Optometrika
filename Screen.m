@@ -31,6 +31,7 @@ classdef Screen < Surface
         w = 1;   % width
         hbins = 128; % number of bins along y-axis
         wbins = 128; % number of bins along x-axis
+        samples = 1; % samples per pixel for supersampling
         image = []; % image on the screen
     end
     
@@ -112,4 +113,3 @@ classdef Screen < Surface
     end
     
 end
-
