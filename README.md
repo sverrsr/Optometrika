@@ -1,3 +1,13 @@
+# Differences from upstream
+
+This fork modifies the original behavior in the following ways:
+
+General surfaces are not clipped (original implementation clips them to circular apertude).
+
+Supports surfaces defined by a meshgrid
+
+These changes may affect ray intersection behavior and boundary handling compared to the original implementation.
+
 # Optometrika
 
 ![optometrika](https://user-images.githubusercontent.com/46988982/51661552-0c009200-1f66-11e9-8d38-79f35f6ac8d8.png)
